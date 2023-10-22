@@ -1,4 +1,3 @@
-import {Component} from "react"
 import { Searchbar } from "./Searchbar/Searchbar"
 import { ImageGallery } from "./ImageGallery/ImageGallery"
 import { Button } from "./Button/Button"
@@ -6,71 +5,62 @@ import { Loader } from "./Loader/Loader"
 import { fetchImages } from "./api"
 import { Layout } from "./Layuot"
 import toast, {Toaster} from 'react-hot-toast';
+import { useEffect, useState } from "react"
 
-export class App extends Component {
-  state = {
-    query: '',
-    images: [],
-    loading: false,
-    error: false,
-    page: 1,
-    isLoadBtn: false
-
-
-  }
-  
-  searchUpdate = currentQuery => {
-    this.setState({
-      query: currentQuery,
-      page: 1,
-      images: [],
-      isLoadBtn: false
-    })
+export const App = () => {
+  const [query, setQuery] = useState('')
+  const [images, setImages] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(false)
+  const [page, setPage] = useState(1)
+  const [isLoadBtn, setIsLoadBtn] = useState(false)
+    
+  const searchUpdate = currentQuery => {
+    setQuery(currentQuery)
+    setPage(1)
+    setImages([])
+    setIsLoadBtn(false)
   }
 
     
-loadBtnUpdate = ()=> {
-  this.setState(prevState => ({ page: prevState.page + 1 }));
-  console.log(this.state.page)
+const loadBtnUpdate = ()=> {
+  setPage(prevState => prevState + 1);
   }
   
-  async componentDidUpdate(prevProps, prevState) {
-    const { query, page } = this.state;
+  useEffect(() => {
+    if (query === '') {
+      return
+    }
+    async function getImages() {
+      try {
+        setLoading(true) 
 
-    try {
-      if (
-        prevState.query !== query ||
-        prevState.page !== page
-      ) {
-        this.setState({ loading: true });
-        const visibleImages = await fetchImages(query, page);
-        this.setState({
-          images: page === 1 ? visibleImages.hits : [...prevState.images, ...visibleImages.hits],
-          loading: false,
-          error: false,
-          isLoadBtn: this.state.page < Math.ceil(visibleImages.totalHits / 12)
-        })
+        const visibleImages = await fetchImages(query, page)
+
+        setImages(page === 1 ? visibleImages.hits : (prevState => [...prevState, ...visibleImages.hits]))
+        setLoading(false)
+        setError(false)
+        setIsLoadBtn(page < Math.ceil(visibleImages.totalHits / 12))
+      
+
         if (visibleImages.totalHits === 0) {
           toast.error("Unfortunately, your search returned no results")
         }
-      }
-    } catch (error) {
-    toast.error("Please reload the page"); 
-  }
-}
-
-  render() {
-    const { images, loading, isLoadBtn, error } = this.state
-    console.log(typeof(images))
+      } catch (error) {
+        toast.error("Please reload the page");
+        console.log(error)
+      }    
+    }
+    getImages()
+  }, [page, query])
+     
     return <Layout>
-       
-      <Searchbar onSubmit={this.searchUpdate} />
+      <Searchbar onSubmit={searchUpdate} />
       {loading && <Loader />}
       {error && <p> Please reload the page</p>}
       {images && <ImageGallery images={images} />}
-      {isLoadBtn &&  <Button onClickButton ={this.loadBtnUpdate}/> } 
+      {isLoadBtn &&  <Button onClickButton ={loadBtnUpdate}/> } 
       <Toaster position="top-left"/>
     </Layout>
     
   }
-}

@@ -1,44 +1,40 @@
-import { Component } from 'react';
+import { useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { Button, Input } from './Searchbar.styled';
 import { Form } from 'components/Searchbar/Searchbar.styled';
 
-export class Searchbar extends Component {
-  state = {
-    query: '',
+export const Searchbar = ({ onSubmit }) => {
+  const [query, setQuery] = useState('');
+
+  const handleChange = evt => {
+    setQuery(evt.target.value.toLowerCase());
   };
 
-  handleChange = evt => {
-    this.setState({ query: evt.target.value.toLowerCase() });
-  };
-
-  handleSubmit = evt => {
+  const handleSubmit = evt => {
     evt.preventDefault();
-    if (this.state.query.trim() === '') {
+    if (query.trim() === '') {
       toast.error('Please enter a search value');
       return;
     }
-    this.props.onSubmit(this.state.query);
+    onSubmit(query);
     evt.target.reset();
   };
 
-  render() {
-    return (
-      <header>
-        <Form onSubmit={this.handleSubmit}>
-          <Button type="submit" className="button">
-            <span>Search</span>
-          </Button>
+  return (
+    <header>
+      <Form onSubmit={handleSubmit}>
+        <Button type="submit">
+          <span>Search</span>
+        </Button>
 
-          <Input
-            type="text"
-            autoComplete="off"
-            autoFocus
-            placeholder="Search images and photos"
-            onChange={this.handleChange}
-          />
-        </Form>
-      </header>
-    );
-  }
-}
+        <Input
+          type="text"
+          autoComplete="off"
+          autoFocus
+          placeholder="Search images and photos"
+          onChange={handleChange}
+        />
+      </Form>
+    </header>
+  );
+};
