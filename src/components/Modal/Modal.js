@@ -18,7 +18,6 @@ Modal.setAppElement('#root');
 export const ModalWindow = ({
   isOpen,
   onRequestClose,
-  // customStyles,
   largeImageURL,
   tags,
 }) => {
